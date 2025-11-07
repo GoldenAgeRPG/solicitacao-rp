@@ -212,18 +212,26 @@
         return str.replace(/"/g, "&quot;"); 
       }
 
-      // --- SCRIPT DE ALTURA DO IFRAME ---
-      const targetOrigin = 'https://goldenagejjkrpg.forumeiros.com';
-      
-      function sendHeight() {
-        var newHeight = document.documentElement.scrollHeight;
-        window.parent.postMessage({ frameHeight: newHeight }, targetOrigin);
+      // --- FUNÇÃO DE COMUNICAÇÃO COM O IFRAME ---
+      function sendHeightToParent() {
+        const newHeight = document.documentElement.scrollHeight;
+        // Envia a altura para o script do fórum
+        window.parent.postMessage({ 
+          frameHeight: newHeight 
+        }, 'https://goldenagerpg.github.io');
       }
 
-      const resizeObserver = new ResizeObserver(entries => {
-        sendHeight();
-      });
-      resizeObserver.observe(document.body);
+      function generateAndDisplayCode() {
+        try {
+          const jogador = escapeHTML(getVal('f-jogador'));
+          const personagem = escapeHTML(getVal('f-personagem'));
+          const tipo = escapeHTML(getVal('f-tipo'));
+          const grau = escapeHTML(getVal('f-grau'));
+          const objetivo = escapeHTML(getVal('f-objetivo'));
+          const formato = escapeHTML(getVal('f-formato'));
+          const barraStatus = escapeHTML(getVal('f-barra-status'));
+          const participantes = escapeHTML(getVal('f-participantes'));
+          const descricao = escapeHTML(getVal('f-descricao'));
 
           // Código em linha única para o template filho
           const codigoTemplate = `[div=background:linear-gradient(135deg,#1a1a2e 0%,#0c0c1a 100%);padding:20px;border-radius:10px;border:2px solid #9b00ff;margin:10px 0;font-family:Arial,sans-serif;color:#e7e9ff;][center][b][size=18][color=#c48fff]SOLICITAÇÃO DE ABERTURA[/color][/size][/b][/center][table width=100%][tr][td width=120][b]Jogador:[/b][/td][td][color=#c48fff]${jogador || 'SeuNomeAqui'}[/color][/td][/tr][tr][td][b]Personagem:[/b][/td][td][color=#c48fff]${personagem || 'NomeDoPersonagem'}[/color][/td][/tr][tr][td][b]Tipo:[/b][/td][td][color=#c48fff]${tipo || 'Missão/Quest/Evento'}[/color][/td][/tr][tr][td][b]Grau/Nível:[/b][/td][td][color=#c48fff]${grau || 'Grau 4/3/2/1 ou Especial'}[/color][/td][/tr][tr][td][b]Objetivo:[/b][/td][td][color=#c48fff]${objetivo || 'O que se pretende alcançar'}[/color][/td][/tr][tr][td][b]Formato:[/b][/td][td][color=#c48fff]${formato || 'Autonarrado/Mestrado'}[/color][/td][/tr][tr][td][b]Barra de Status Inimigos:[/b][/td][td][color=#c48fff]${barraStatus || 'Com Barra/Sem Barra'}[/color][/td][/tr][tr][td][b]Participantes:[/b][/td][td][color=#c48fff]${participantes || 'Lista de jogadores (se aplicável)'}[/color][/td][/tr][tr][td][b]Descrição:[/b][/td][td][color=#c48fff]${descricao || 'Breve descrição do enredo...'}[/color][/td][/tr][/table][hr][div=background:#1a1c33;padding:10px;border-radius:6px;text-align:center;][b]Status:[/b] [color=#ffab00]⏳ AGUARDANDO AVALIAÇÃO[/color][/div][div=background:rgba(155,0,255,0.1);padding:8px;border-radius:4px;margin-top:8px;font-size:12px;text-align:center;][b]Mestre Responsável:[/b] [color=#c48fff]Aguardando designação[/color][/div][/div]`;
@@ -289,4 +297,3 @@
   </script>
 </body>
 </html>
-
