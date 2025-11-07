@@ -21,13 +21,18 @@
       --glass-2: rgba(255, 255, 255, 0.02);
       --success: #00e091;
     }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
       font-family: var(--ui);
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.6;
       padding: 20px;
-      margin: 0;
+      min-height: 100vh;
     }
     .container {
       max-width: 900px;
@@ -38,9 +43,13 @@
       border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 20px;
+      margin-bottom: 20px;
     }
     #output-container {
-      margin-top: 20px;
+      background: var(--panel);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px;
     }
     fieldset {
       border: 1px solid var(--glass);
@@ -55,9 +64,24 @@
       padding: 0 10px;
       margin-left: 10px;
     }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .input-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-    label { font-weight: 500; font-size: 13px; color: var(--muted); text-transform: uppercase; font-family: var(--mono); }
+    .grid-2 { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 15px; 
+    }
+    .input-group { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 5px; 
+      margin-bottom: 10px; 
+    }
+    label { 
+      font-weight: 500; 
+      font-size: 13px; 
+      color: var(--muted); 
+      text-transform: uppercase; 
+      font-family: var(--mono); 
+    }
     input[type="text"], input[type="url"], textarea, select {
       background: var(--bg);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -68,16 +92,16 @@
       font-size: 14px;
     }
     select { font-family: var(--mono); }
-    textarea { min-height: 80px; resize: vertical; }
-    .note { font-size: 12px; color: var(--muted); opacity: 0.8; margin-top: -5px; margin-bottom: 10px; }
-    h4 {
-      font-family: var(--title);
-      color: var(--highlight);
-      border-bottom: 1px solid var(--glass-2);
-      padding-bottom: 5px;
-      margin-top: 15px;
-      margin-bottom: 10px;
-      font-size: 1.1em;
+    textarea { 
+      min-height: 80px; 
+      resize: vertical; 
+    }
+    .note { 
+      font-size: 12px; 
+      color: var(--muted); 
+      opacity: 0.8; 
+      margin-top: -5px; 
+      margin-bottom: 10px; 
     }
     #output-code {
       width: 100%;
@@ -93,18 +117,40 @@
       margin-bottom: 10px;
     }
     #copy-btn {
-      width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--success);
-      color: var(--panel); font-size: 1em; font-family: var(--ui); font-weight: 700;
-      cursor: pointer; transition: background 0.2s;
+      width: 100%; 
+      padding: 12px; 
+      border: none; 
+      border-radius: 8px; 
+      background: var(--success);
+      color: var(--panel); 
+      font-size: 1em; 
+      font-family: var(--ui); 
+      font-weight: 700;
+      cursor: pointer; 
+      transition: background 0.2s;
     }
-    #copy-btn:hover { background: #00ffaa; }
+    #copy-btn:hover { 
+      background: #00ffaa; 
+    }
     
-    textarea::-webkit-scrollbar { width: 8px; }
-    textarea::-webkit-scrollbar-track { background: var(--panel); }
-    textarea::-webkit-scrollbar-thumb { background-color: var(--accent1); border-radius: 8px; }
+    textarea::-webkit-scrollbar { 
+      width: 8px; 
+    }
+    textarea::-webkit-scrollbar-track { 
+      background: var(--panel); 
+    }
+    textarea::-webkit-scrollbar-thumb { 
+      background-color: var(--accent1); 
+      border-radius: 8px; 
+    }
     
     @media (max-width: 600px) {
-      .grid-2 { grid-template-columns: 1fr; }
+      .grid-2 { 
+        grid-template-columns: 1fr; 
+      }
+      body {
+        padding: 10px;
+      }
     }
   </style>
 </head>
@@ -190,6 +236,7 @@
   </div>
 
   <script>
+    // --- SCRIPT PRINCIPAL ---
     document.addEventListener('DOMContentLoaded', function() {
       
       const form = document.getElementById('form-container');
@@ -198,8 +245,10 @@
       const allInputs = form.querySelectorAll('input, textarea, select');
       const storageKey = 'solicitacaoRPData_v1';
 
+      // --- FUNÇÕES UTILITÁRIAS ---
       function getVal(id) { 
-        return document.getElementById(id).value.trim(); 
+        const element = document.getElementById(id);
+        return element ? element.value.trim() : ''; 
       }
       
       function escapeHTML(str) { 
@@ -213,14 +262,25 @@
       }
 
       // --- FUNÇÃO DE COMUNICAÇÃO COM O IFRAME ---
-      function sendHeightToParent() {
-        const newHeight = document.documentElement.scrollHeight;
-        // Envia a altura para o script do fórum
+      function sendHeight() {
+        // Calcula a altura exata do documento
+        const height = Math.max(
+          document.body.scrollHeight, 
+          document.body.offsetHeight,
+          document.documentElement.clientHeight,
+          document.documentElement.scrollHeight,
+          document.documentElement.offsetHeight
+        );
+        
+        // Envia a altura para o pai (script do fórum)
         window.parent.postMessage({ 
-          frameHeight: newHeight 
+          frameHeight: height 
         }, 'https://goldenagerpg.github.io');
+        
+        console.log('Altura enviada:', height + 'px');
       }
 
+      // --- GERAÇÃO DO CÓDIGO ---
       function generateAndDisplayCode() {
         try {
           const jogador = escapeHTML(getVal('f-jogador'));
@@ -244,6 +304,7 @@
         }
       }
       
+      // --- SALVAMENTO LOCAL ---
       function saveDataToLocalStorage() {
         const data = {};
         allInputs.forEach(input => {
@@ -255,43 +316,60 @@
       }
 
       function loadDataFromLocalStorage() {
-        const data = JSON.parse(localStorage.getItem(storageKey));
-        if (data) {
-          allInputs.forEach(input => {
-            if (input.id && data[input.id] !== undefined) {
-              input.value = data[input.id];
-            }
-          });
+        try {
+          const data = JSON.parse(localStorage.getItem(storageKey));
+          if (data) {
+            allInputs.forEach(input => {
+              if (input.id && data[input.id] !== undefined) {
+                input.value = data[input.id];
+              }
+            });
+          }
+        } catch (e) {
+          console.log('Nenhum dado salvo encontrado');
         }
         generateAndDisplayCode();
       }
 
       // --- OBSERVADOR DE REDIMENSIONAMENTO ---
-      const resizeObserver = new ResizeObserver(entries => {
-        sendHeightToParent();
-      });
-      
-      // --- EVENT LISTENERS ---
-      loadDataFromLocalStorage();
-
-      form.addEventListener('input', function(event) {
-        generateAndDisplayCode();
-        saveDataToLocalStorage();
-        sendHeightToParent();
+      const resizeObserver = new ResizeObserver(function(entries) {
+        sendHeight();
       });
 
-      copyBtn.addEventListener('click', function() {
-        outputArea.select();
-        document.execCommand('copy');
-        copyBtn.textContent = 'Copiado!';
-        setTimeout(() => {
-          copyBtn.textContent = 'Copiar Código';
-        }, 2000);
-      });
-      
-      // Inicialização
-      resizeObserver.observe(document.body);
-      sendHeightToParent(); // Envia altura inicial
+      // --- INICIALIZAÇÃO ---
+      function initialize() {
+        // Carrega dados salvos
+        loadDataFromLocalStorage();
+        
+        // Configura observador
+        resizeObserver.observe(document.body);
+        
+        // Envia altura inicial
+        setTimeout(sendHeight, 100);
+        
+        // Configura eventos
+        form.addEventListener('input', function() {
+          generateAndDisplayCode();
+          saveDataToLocalStorage();
+          setTimeout(sendHeight, 50);
+        });
+
+        copyBtn.addEventListener('click', function() {
+          outputArea.select();
+          document.execCommand('copy');
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = 'Copiado!';
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
+        });
+        
+        // Envia altura quando a janela é redimensionada
+        window.addEventListener('resize', sendHeight);
+      }
+
+      // Inicializa a aplicação
+      initialize();
 
     });
   </script>
