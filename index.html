@@ -236,7 +236,6 @@
   </div>
 
   <script>
-    // --- SCRIPT PRINCIPAL ---
     document.addEventListener('DOMContentLoaded', function() {
       
       const form = document.getElementById('form-container');
@@ -244,6 +243,7 @@
       const outputArea = document.getElementById('output-code');
       const allInputs = form.querySelectorAll('input, textarea, select');
       const storageKey = 'solicitacaoRPData_v1';
+      const targetOrigin = 'https://goldenagejjkrpg.forumeiros.com'; // URL correta do fórum
 
       // --- FUNÇÕES UTILITÁRIAS ---
       function getVal(id) { 
@@ -255,29 +255,11 @@
         if (!str) return ''; 
         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;"); 
       }
-      
-      function escapeAttr(str) { 
-        if (!str) return ''; 
-        return str.replace(/"/g, "&quot;"); 
-      }
 
       // --- SISTEMA DE ALTURA DINÂMICA ---
       function calculateAndSendHeight() {
-        const body = document.body;
-        const html = document.documentElement;
-        
-        const height = Math.max(
-          body.scrollHeight, 
-          body.offsetHeight,
-          html.clientHeight,
-          html.scrollHeight,
-          html.offsetHeight
-        );
-        
-        // [CORRIGIDO] Enviar a mensagem para a URL do seu fórum
-        window.parent.postMessage({ 
-          frameHeight: height 
-        }, 'https://goldenagejjkrpg.forumeiros.com'); 
+        const height = document.documentElement.scrollHeight;
+        window.parent.postMessage({ frameHeight: height }, targetOrigin);
       }
 
       // --- GERAÇÃO DO CÓDIGO ---
@@ -331,35 +313,22 @@
         generateAndDisplayCode();
       }
 
-      // --- OBSERVADORES DE MUDANÇA ---
-      const resizeObserver = new ResizeObserver(function() {
-        calculateAndSendHeight();
-      });
-
-      const mutationObserver = new MutationObserver(function() {
-        setTimeout(calculateAndSendHeight, 10);
-      });
-
       // --- INICIALIZAÇÃO ---
       function initialize() {
         loadDataFromLocalStorage();
         
-        resizeObserver.observe(document.body);
-        mutationObserver.observe(document.body, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['style', 'class']
-        });
+        // Envia a altura inicial após o conteúdo carregar
+        setTimeout(calculateAndSendHeight, 150); 
         
-        setTimeout(calculateAndSendHeight, 100);
-        
+        // Evento de 'input' para atualizar em tempo real
         form.addEventListener('input', function() {
           generateAndDisplayCode();
           saveDataToLocalStorage();
+          // Envia a altura após a mudança
           setTimeout(calculateAndSendHeight, 50);
         });
 
+        // Evento do botão de copiar
         copyBtn.addEventListener('click', function() {
           outputArea.select();
           document.execCommand('copy');
@@ -370,6 +339,7 @@
           }, 2000);
         });
         
+        // Evento de redimensionar a janela (ex: girar o celular)
         window.addEventListener('resize', function() {
           setTimeout(calculateAndSendHeight, 100);
         });
